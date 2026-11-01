@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added the ``--enable-internal-dns`` and ``--disable-internal-dns`` options
+    to the ``network create`` and ``network set`` commands. They set the
+    ``internal_dns_enabled`` attribute of the network, and they need the
+    ``network-internal-dns`` extension of the Networking service.

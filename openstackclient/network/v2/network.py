@@ -63,6 +63,7 @@ def _get_columns_network(
         'subnet_ids': 'subnets',
         'is_admin_state_up': 'admin_state_up',
         'is_router_external': 'router:external',
+        'is_internal_dns_enabled': 'internal_dns_enabled',
         'is_port_security_enabled': 'port_security_enabled',
         'provider_network_type': 'provider:network_type',
         'provider_physical_network': 'provider:physical_network',
@@ -96,6 +97,10 @@ def _get_attrs(
         attrs['port_security_enabled'] = True
     if parsed_args.disable_port_security:
         attrs['port_security_enabled'] = False
+    if parsed_args.enable_internal_dns:
+        attrs['internal_dns_enabled'] = True
+    if parsed_args.disable_internal_dns:
+        attrs['internal_dns_enabled'] = False
 
     # "network set" command doesn't support setting project.
     if 'project' in parsed_args and parsed_args.project is not None:
@@ -257,6 +262,26 @@ class CreateNetwork(command.ShowOne, common.NeutronCommandWithExtraArgs):
                 "Availability Zone in which to create this network "
                 "(Network Availability Zone extension required, "
                 "repeat option to set multiple availability zones)"
+            ),
+        )
+        internal_dns_group = parser.add_mutually_exclusive_group()
+        internal_dns_group.add_argument(
+            '--enable-internal-dns',
+            action='store_true',
+            help=_(
+                "Resolve the names of the ports of this network from within "
+                "the network (default) (network-internal-dns extension "
+                "required)"
+            ),
+        )
+        internal_dns_group.add_argument(
+            '--disable-internal-dns',
+            action='store_true',
+            help=_(
+                "Do not resolve the names of the ports of this network from "
+                "within the network, for networks whose instances only use "
+                "a DNS service reachable from it (network-internal-dns "
+                "extension required)"
             ),
         )
         port_security_group = parser.add_mutually_exclusive_group()
@@ -751,6 +776,26 @@ class SetNetwork(common.NeutronCommandWithExtraArgs):
         )
         parser.add_argument(
             '--mtu', metavar="<mtu>", help=_("Set network mtu")
+        )
+        internal_dns_group = parser.add_mutually_exclusive_group()
+        internal_dns_group.add_argument(
+            '--enable-internal-dns',
+            action='store_true',
+            help=_(
+                "Resolve the names of the ports of this network from within "
+                "the network (network-internal-dns extension "
+                "required)"
+            ),
+        )
+        internal_dns_group.add_argument(
+            '--disable-internal-dns',
+            action='store_true',
+            help=_(
+                "Do not resolve the names of the ports of this network from "
+                "within the network, for networks whose instances only use "
+                "a DNS service reachable from it (network-internal-dns "
+                "extension required)"
+            ),
         )
         port_security_group = parser.add_mutually_exclusive_group()
         port_security_group.add_argument(
