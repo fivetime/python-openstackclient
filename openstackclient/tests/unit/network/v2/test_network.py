@@ -1326,3 +1326,69 @@ class TestNetworkInternalDns(network_fakes.TestNetworkV2):
             ['--enable-internal-dns', '--disable-internal-dns', 'net1'],
             [],
         )
+
+
+class TestNetworkMetadataStatefulIpv6(network_fakes.TestNetworkV2):
+    def setUp(self):
+        super().setUp()
+        self.network_client.create_network.return_value = (
+            sdk_fakes.generate_fake_resource(_network.Network)
+        )
+        self.network_client.update_network.return_value = None
+
+    def _create(self, option, expected):
+        cmd = network.CreateNetwork(self.app, None)
+        parsed_args = self.check_parser(
+            cmd,
+            [option, 'net1'],
+            [
+                ('enable_metadata_stateful_ipv6', expected),
+                ('disable_metadata_stateful_ipv6', not expected),
+            ],
+        )
+        cmd.take_action(parsed_args)
+        call_kwargs = self.network_client.create_network.call_args.kwargs
+        self.assertEqual(expected, call_kwargs['metadata_stateful_ipv6_address'])
+
+    def test_create_enable(self):
+        self._create('--enable-metadata-stateful-ipv6', True)
+
+    def test_create_disable(self):
+        self._create('--disable-metadata-stateful-ipv6', False)
+
+    def test_create_default_does_not_send_the_attribute(self):
+        cmd = network.CreateNetwork(self.app, None)
+        parsed_args = self.check_parser(cmd, ['net1'], [])
+        cmd.take_action(parsed_args)
+        call_kwargs = self.network_client.create_network.call_args.kwargs
+        self.assertNotIn('metadata_stateful_ipv6_address', call_kwargs)
+
+    def _set(self, option, expected):
+        net = sdk_fakes.generate_fake_resource(_network.Network)
+        self.network_client.find_network.return_value = net
+        cmd = network.SetNetwork(self.app, None)
+        parsed_args = self.check_parser(cmd, [option, net.name], [])
+        cmd.take_action(parsed_args)
+        self.network_client.update_network.assert_called_once_with(
+            net, metadata_stateful_ipv6_address=expected
+        )
+
+    def test_set_enable(self):
+        self._set('--enable-metadata-stateful-ipv6', True)
+
+    def test_set_disable(self):
+        self._set('--disable-metadata-stateful-ipv6', False)
+
+    def test_enable_and_disable_are_exclusive(self):
+        cmd = network.SetNetwork(self.app, None)
+        self.assertRaises(
+            tests_utils.ParserException,
+            self.check_parser,
+            cmd,
+            [
+                '--enable-metadata-stateful-ipv6',
+                '--disable-metadata-stateful-ipv6',
+                'net1',
+            ],
+            [],
+        )

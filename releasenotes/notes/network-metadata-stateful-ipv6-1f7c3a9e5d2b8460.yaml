@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added the ``--enable-metadata-stateful-ipv6`` and
+    ``--disable-metadata-stateful-ipv6`` options to the ``network create`` and
+    ``network set`` commands. They need the ``network-metadata-stateful-ipv6``
+    extension of the Networking service.

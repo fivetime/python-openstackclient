@@ -64,6 +64,7 @@ def _get_columns_network(
         'is_admin_state_up': 'admin_state_up',
         'is_router_external': 'router:external',
         'is_internal_dns_enabled': 'internal_dns_enabled',
+        'is_metadata_stateful_ipv6_address': 'metadata_stateful_ipv6_address',
         'is_port_security_enabled': 'port_security_enabled',
         'provider_network_type': 'provider:network_type',
         'provider_physical_network': 'provider:physical_network',
@@ -101,6 +102,10 @@ def _get_attrs(
         attrs['internal_dns_enabled'] = True
     if parsed_args.disable_internal_dns:
         attrs['internal_dns_enabled'] = False
+    if parsed_args.enable_metadata_stateful_ipv6:
+        attrs['metadata_stateful_ipv6_address'] = True
+    if parsed_args.disable_metadata_stateful_ipv6:
+        attrs['metadata_stateful_ipv6_address'] = False
 
     # "network set" command doesn't support setting project.
     if 'project' in parsed_args and parsed_args.project is not None:
@@ -262,6 +267,24 @@ class CreateNetwork(command.ShowOne, common.NeutronCommandWithExtraArgs):
                 "Availability Zone in which to create this network "
                 "(Network Availability Zone extension required, "
                 "repeat option to set multiple availability zones)"
+            ),
+        )
+        metadata_ipv6_group = parser.add_mutually_exclusive_group()
+        metadata_ipv6_group.add_argument(
+            '--enable-metadata-stateful-ipv6',
+            action='store_true',
+            help=_(
+                "Allocate a metadata port address on the IPv6 subnets of this "
+                "network whose addresses are not assigned automatically "
+                "(network-metadata-stateful-ipv6 extension required)"
+            ),
+        )
+        metadata_ipv6_group.add_argument(
+            '--disable-metadata-stateful-ipv6',
+            action='store_true',
+            help=_(
+                "Do not allocate a metadata port address on these subnets (default) "
+                "(network-metadata-stateful-ipv6 extension required)"
             ),
         )
         internal_dns_group = parser.add_mutually_exclusive_group()
@@ -776,6 +799,24 @@ class SetNetwork(common.NeutronCommandWithExtraArgs):
         )
         parser.add_argument(
             '--mtu', metavar="<mtu>", help=_("Set network mtu")
+        )
+        metadata_ipv6_group = parser.add_mutually_exclusive_group()
+        metadata_ipv6_group.add_argument(
+            '--enable-metadata-stateful-ipv6',
+            action='store_true',
+            help=_(
+                "Allocate a metadata port address on the IPv6 subnets of this "
+                "network whose addresses are not assigned automatically "
+                "(network-metadata-stateful-ipv6 extension required)"
+            ),
+        )
+        metadata_ipv6_group.add_argument(
+            '--disable-metadata-stateful-ipv6',
+            action='store_true',
+            help=_(
+                "Do not allocate a metadata port address on these subnets "
+                "(network-metadata-stateful-ipv6 extension required)"
+            ),
         )
         internal_dns_group = parser.add_mutually_exclusive_group()
         internal_dns_group.add_argument(
